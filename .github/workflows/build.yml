@@ -9,10 +9,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Action 1 \- Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Action 2 \- Set up JDK 17
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: 17
@@ -21,7 +21,7 @@ jobs:
         run: mvn package -DbuildNumber=${{ github.run_number }}
 
       - name: Action 4 \- Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: plugin-jar-${{ github.run_number }}
           path: target/WorldResetPlugin_*.jar
