@@ -1,0 +1,20 @@
+name: WorldResetPlugin
+version: 1.0
+main: com.hardCore.WorldResetPlugin
+api-version: 1.13
+description: プレイヤーが死亡するとワールドをリセットするプラグイン
+author: SIROKOKE
+
+commands:
+  deaths:
+    description: プレイヤーのデス回数を表示
+    usage: /deaths [player]
+    permission: worldresetplugin.deaths
+
+permissions:
+  worldresetplugin.reset:
+    description: ワールドリセット機能の使用を許可
+    default: true
+  worldresetplugin.deaths:
+    description: デス回数確認コマンドの使用を許可
+    default: true
