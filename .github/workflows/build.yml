@@ -24,4 +24,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: plugin-jar-${{ github.run_number }}
-          path: target/WorldResetPlugin_*.jar
+          path: target/*.jar
