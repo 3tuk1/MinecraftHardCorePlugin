@@ -7,6 +7,7 @@ public class ReadSettings {
     private final JavaPlugin plugin;
     private static boolean noresetOnEndDeath = true;
     private static boolean customSeed = true;
+    private static boolean worldBackup = false;
     private static long seed = 123456789L;
 
     public ReadSettings(JavaPlugin plugin) {
@@ -26,6 +27,8 @@ public class ReadSettings {
         plugin.getLogger().info("設定を読み込みました: custom_seed = " + customSeed);
         seed = config.getLong("seed", 123456789L);
         plugin.getLogger().info("設定を読み込みました: seed = " + seed);
+        worldBackup = config.getBoolean("world_backup", false);
+        plugin.getLogger().info("設定を読み込みました: world_backup = " + worldBackup);
     }
 
     public static boolean isNoresetOnEndDeath() {
@@ -38,5 +41,9 @@ public class ReadSettings {
 
     public static long getSeed() {
         return seed;
+    }
+
+    public static boolean isWorldBackup() {
+        return worldBackup;
     }
 }

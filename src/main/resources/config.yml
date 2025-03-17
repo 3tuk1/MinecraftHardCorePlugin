@@ -1,3 +1,4 @@
 reset_on_end_reach: true
 custom_seed: false
 seed: 123456789
+world_backup: false

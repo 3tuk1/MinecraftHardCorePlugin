@@ -84,6 +84,12 @@ public class WorldResetPlugin extends JavaPlugin implements Listener {
                 // ワールドをアンロード（保存せず）
                 unloadAllWorlds(worldName);
 
+                // ワールドデータをバックアップ
+                if(ReadSettings.isWorldBackup()){
+                    worldBackup(worldName);
+                    worldBackup(worldName + "_nether");
+                    worldBackup(worldName + "_the_end");
+                }
                 // ワールドデータを削除
                 deleteWorldFolder(new File(worldContainer, worldName));
                 deleteWorldFolder(new File(worldContainer, worldName + "_nether"));
@@ -102,8 +108,24 @@ public class WorldResetPlugin extends JavaPlugin implements Listener {
         });
     }
 
+    private void worldBackup(String worldName){
+        File worldContainer = Bukkit.getWorldContainer();
+        File backupDir = new File(worldContainer, "world_backups");
+        if (!backupDir.exists()) {
+            backupDir.mkdir();
+        }
+        File worldBackup = new File(backupDir, worldName + "_" + System.currentTimeMillis());
+        try {
+            FileUtils.copyDirectory(new File(worldContainer, worldName), worldBackup);
+            getLogger().info("ワールドのバックアップを作成しました: " + worldBackup.getName());
+        } catch (IOException e) {
+            getLogger().warning("ワールドのバックアップ作成中にエラー: " + e.getMessage());
+        }
+    }
+
     private void kickAllPlayers(String deathMessage) {
         for (Player player : Bukkit.getOnlinePlayers()) {
+
             player.kickPlayer("§c" + deathMessage + "\n§eワールドをリセットします。\n§e数分後に再接続してください。");
         }
     }
