@@ -59,17 +59,18 @@ public class WorldResetPlugin extends JavaPlugin implements Listener {
         }
 
         Player player = event.getEntity();
+        String deathMessage = event.getDeathMessage();
         deathRecordManager.recordDeath(player.getName());
         if (PlayerPortalListener.isReset() || Bukkit.getOnlinePlayers().stream().allMatch(Entity::isDead)) {
             getLogger().info(event.getEntity().getName() + " が死亡。ワールドをリセットします...");
             event.getDrops().clear();
-            resetWorldAsync("world");
+            resetWorldAsync("world",deathMessage);
         }
     }
 
-    private void resetWorldAsync(String worldName) {
+    private void resetWorldAsync(String worldName,String deathMessage) {
         // プレイヤーを全員キック
-        kickAllPlayers();
+        kickAllPlayers(deathMessage);
 
         // メインスレッドで実行
         Bukkit.getScheduler().runTask(this, () -> {
@@ -101,9 +102,9 @@ public class WorldResetPlugin extends JavaPlugin implements Listener {
         });
     }
 
-    private void kickAllPlayers() {
+    private void kickAllPlayers(String deathMessage) {
         for (Player player : Bukkit.getOnlinePlayers()) {
-            player.kickPlayer("§cワールドをリセットします。\n§e数分後に再接続してください。");
+            player.kickPlayer("§c" + deathMessage + "\n§eワールドをリセットします。\n§e数分後に再接続してください。");
         }
     }
 
