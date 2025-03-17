@@ -1,6 +1,8 @@
 package com.hardCore;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.NameFileFilter;
+import org.apache.commons.io.filefilter.NotFileFilter;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
@@ -13,6 +15,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.Random;
 
 public class WorldResetPlugin extends JavaPlugin implements Listener {
@@ -75,8 +78,28 @@ public class WorldResetPlugin extends JavaPlugin implements Listener {
         // メインスレッドで実行
         Bukkit.getScheduler().runTask(this, () -> {
             try {
+                if(ReadSettings.isWorldBackup()){
+                    Arrays.asList(worldName, worldName + "_nether", worldName + "_the_end")
+                        .forEach(name -> {
+                            World world = Bukkit.getWorld(name);
+                            if (world != null) {
+                                // ワールドのセーブ
+                                world.save();
+                            }
+                        });
+                }
+
                 // 全てのタスクをキャンセル
                 Bukkit.getScheduler().cancelTasks(this);
+
+                // ワールドデータをバックアップ
+                if(ReadSettings.isWorldBackup()){
+                    World world = Bukkit.getWorld(worldName);
+                    long seed = Objects.requireNonNull(world).getSeed();
+                    worldBackup(worldName,seed);
+                    worldBackup(worldName + "_nether",  seed);
+                    worldBackup(worldName + "_the_end", seed);
+                }
 
                 // データクリーンアップと削除を即時実行
                 File worldContainer = Bukkit.getWorldContainer();
@@ -84,12 +107,7 @@ public class WorldResetPlugin extends JavaPlugin implements Listener {
                 // ワールドをアンロード（保存せず）
                 unloadAllWorlds(worldName);
 
-                // ワールドデータをバックアップ
-                if(ReadSettings.isWorldBackup()){
-                    worldBackup(worldName);
-                    worldBackup(worldName + "_nether");
-                    worldBackup(worldName + "_the_end");
-                }
+
                 // ワールドデータを削除
                 deleteWorldFolder(new File(worldContainer, worldName));
                 deleteWorldFolder(new File(worldContainer, worldName + "_nether"));
@@ -108,15 +126,29 @@ public class WorldResetPlugin extends JavaPlugin implements Listener {
         });
     }
 
-    private void worldBackup(String worldName){
+    private void worldBackup(String worldName, long seed) {
+
         File worldContainer = Bukkit.getWorldContainer();
-        File backupDir = new File(worldContainer, "world_backups");
-        if (!backupDir.exists()) {
-            backupDir.mkdir();
+        // もし　同じディレクトリ名があったら、それを削除して新しいバックアップを作成
+        File backupDir = new File(worldContainer, "world_backups/" + seed);
+        File backupDirworld = new File(worldContainer, "world_backups/" + seed + "/" + worldName);
+        if (backupDirworld.exists()) {
+            try {
+                FileUtils.deleteDirectory(backupDirworld);
+                getLogger().info("既存のバックアップディレクトリを削除しました: " + backupDirworld.getName());
+            } catch (IOException e) {
+                getLogger().warning("既存のバックアップディレクトリの削除に失敗: " + backupDirworld.getName());
+            }
         }
-        File worldBackup = new File(backupDir, worldName + "_" + System.currentTimeMillis());
+        if (backupDir.mkdir()) {
+            getLogger().info("バックアップディレクトリを作成しました: " + backupDir.getName());
+        }
+
+        File worldBackup = new File(backupDir, worldName);
         try {
-            FileUtils.copyDirectory(new File(worldContainer, worldName), worldBackup);
+            // session.lock ファイルを除外してディレクトリをコピー
+            FileUtils.copyDirectory(new File(worldContainer, worldName), worldBackup,
+                    new NotFileFilter(new NameFileFilter("session.lock")));
             getLogger().info("ワールドのバックアップを作成しました: " + worldBackup.getName());
         } catch (IOException e) {
             getLogger().warning("ワールドのバックアップ作成中にエラー: " + e.getMessage());
