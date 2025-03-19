@@ -4,6 +4,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.NameFileFilter;
 import org.apache.commons.io.filefilter.NotFileFilter;
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -47,9 +48,9 @@ public class WorldResetPlugin extends JavaPlugin implements Listener {
         if(PlayerPortalListener.isReset()){
             getLogger().info(event.getEntity().getName() + " が死亡。ワールドをリセットします...");
             resetWorldAsync("world",deathMessage);
-        }else if(Bukkit.getOnlinePlayers().stream().allMatch(Entity::isDead)){
-            getLogger().info("全プレイヤーが死亡。ワールドをリセットします...");
-            resetWorldAsync("world",deathMessage);
+        }else if(Bukkit.getOnlinePlayers().stream().allMatch(players -> players.isDead() || players.getGameMode() == GameMode.SPECTATOR)){
+            getLogger().info("全プレイヤーがスペクテイターモードか死亡しています。ワールドをリセットします...");
+            resetWorldAsync("world", deathMessage);
         }
     }
 
