@@ -22,7 +22,6 @@ public class WorldResetPlugin extends JavaPlugin implements Listener {
     private DeathRecordManager deathRecordManager;
     @Override
     public void onEnable() {
-        createStartBatIfNotExists();
         ReadSettings readSettings = new ReadSettings(this);
         readSettings.saveDefaultConfig();
         readSettings.reloadSettings();
@@ -33,26 +32,6 @@ public class WorldResetPlugin extends JavaPlugin implements Listener {
         getLogger().info("WorldResetPlugin が有効化されました！");
     }
 
-    private void createStartBatIfNotExists() {
-        // サーバーのルートディレクトリに start.bat を作成
-        File startBat = new File(getServer().getWorldContainer().getParentFile(), "start.bat");
-        if (!startBat.exists()) {
-            try {
-                String batContent = "@echo off\n" +
-                        ":start\n" +
-                        "java -Xms8G -Xmx8G -jar paper.jar nogui\n" +
-                        "ping 127.0.0.1 -n 10 > nul\n" +
-                        "goto start";
-
-                FileUtils.writeStringToFile(startBat, batContent, "UTF-8");
-                getLogger().info("start.batファイルをサーバーのルートディレクトリに作成しました。");
-                getLogger().info("サーバーを起動するには start.bat を実行してください。");
-                Runtime.getRuntime().halt(0); // 即時強制終了
-            } catch (IOException e) {
-                getLogger().warning("start.batファイルの作成に失敗: " + e.getMessage());
-            }
-        }
-    }
 
 
     @EventHandler
@@ -64,9 +43,12 @@ public class WorldResetPlugin extends JavaPlugin implements Listener {
         Player player = event.getEntity();
         String deathMessage = event.getDeathMessage();
         deathRecordManager.recordDeath(player.getName());
-        if (PlayerPortalListener.isReset() || Bukkit.getOnlinePlayers().stream().allMatch(Entity::isDead)) {
+        //if (PlayerPortalListener.isReset() || Bukkit.getOnlinePlayers().stream().allMatch(Entity::isDead)) {
+        if(PlayerPortalListener.isReset()){
             getLogger().info(event.getEntity().getName() + " が死亡。ワールドをリセットします...");
-            event.getDrops().clear();
+            resetWorldAsync("world",deathMessage);
+        }else if(Bukkit.getOnlinePlayers().stream().allMatch(Entity::isDead)){
+            getLogger().info("全プレイヤーが死亡。ワールドをリセットします...");
             resetWorldAsync("world",deathMessage);
         }
     }
